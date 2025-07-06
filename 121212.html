@@ -1,0 +1,1928 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>香水数据库系统</title>
+    <!-- 引入Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <style>
+        /* 基础样式 */
+        body {
+            font-family: 'Arial', sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f9f3f0;
+            color: #333;
+        }
+        
+        h1 {
+            color: #6d4c41;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .container {
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+        }
+        
+        .section {
+            background-color: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        /* 主页样式 */
+        .home-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 70vh;
+        }
+        
+        .option-card {
+            width: 80%;
+            max-width: 400px;
+            padding: 30px;
+            margin: 15px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            text-align: center;
+            cursor: pointer;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        
+        .option-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+        }
+        
+        .option-card h2 {
+            color: #8d6e63;
+            margin-top: 0;
+        }
+        
+        .option-card p {
+            color: #666;
+        }
+        
+        /* 通用组件样式 */
+        .search-box {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        input[type="text"], input[type="password"], textarea {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        
+        textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+        
+        button {
+            padding: 10px 20px;
+            background-color: #8d6e63;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+        
+        button:hover {
+            background-color: #6d4c41;
+        }
+        
+        .perfume-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 15px;
+        }
+        
+        .perfume-item {
+            border: 1px solid #ddd;
+            padding: 15px;
+            border-radius: 6px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .perfume-info {
+            font-weight: bold;
+        }
+        
+        .brand {
+            color: #8d6e63;
+        }
+        
+        .name {
+            color: #333;
+        }
+        
+        .delete-btn {
+            background-color: #d32f2f;
+            padding: 5px 10px;
+            font-size: 14px;
+        }
+        
+        .delete-btn:hover {
+            background-color: #b71c1c;
+        }
+        
+        .add-form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .form-group {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        
+        .form-group label {
+            min-width: 60px;
+        }
+        
+        .counter {
+            text-align: right;
+            font-style: italic;
+            color: #6d4c41;
+            margin-top: 10px;
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+        }
+        
+        .toggle-btn {
+            background: none;
+            border: none;
+            font-size: 20px;
+            color: #6d4c41;
+            cursor: pointer;
+        }
+        
+        .section-content {
+            margin-top: 15px;
+        }
+        
+        .collapsed .section-content {
+            display: none;
+        }
+        
+        .brand-group {
+            margin-bottom: 20px;
+        }
+        
+        .brand-header {
+            font-weight: bold;
+            color: #8d6e63;
+            margin-bottom: 10px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .brand-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 10px;
+        }
+        
+        .brand-collapsed .brand-content {
+            display: none;
+        }
+        
+        /* 评价页面样式 */
+        .review-item {
+            border: 1px solid #ddd;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+        }
+        
+        .review-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+        
+        .review-content {
+            color: #555;
+        }
+        
+        .rating {
+            color: #ff9800;
+            font-weight: bold;
+        }
+        
+        .back-btn {
+            margin-bottom: 20px;
+        }
+        
+        /* 导航按钮 */
+        .nav-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+        
+        /* 导入数据样式 */
+        .import-data-container {
+            width: 80%;
+            max-width: 600px;
+            margin: 20px auto;
+        }
+        
+        .import-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .sample-data-btn {
+            background-color: #5c6bc0;
+        }
+        
+        .sample-data-btn:hover {
+            background-color: #3949ab;
+        }
+        
+        .import-btn {
+            background-color: #43a047;
+        }
+        
+        .import-btn:hover {
+            background-color: #2e7d32;
+        }
+        
+        /* 数据备份样式 */
+        .backup-section {
+            margin-top: 30px;
+            border-top: 1px solid #ddd;
+            padding-top: 20px;
+        }
+        
+        .backup-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .export-btn {
+            background-color: #2196f3;
+        }
+        
+        .export-btn:hover {
+            background-color: #0d8aee;
+        }
+        
+        .import-file-btn {
+            background-color: #4caf50;
+        }
+        
+        .import-file-btn:hover {
+            background-color: #3d8b40;
+        }
+        
+        .clear-btn {
+            background-color: #f44336;
+        }
+        
+        .clear-btn:hover {
+            background-color: #d32f2f;
+        }
+    </style>
+</head>
+<body>
+    <!-- 主页 -->
+    <div id="homePage" class="home-container">
+        <h1>香水数据库系统</h1>
+        <div class="option-card" id="managePerfumesOption">
+            <h2>香水种类管理</h2>
+            <p>添加、删除和搜索香水品牌与名称</p>
+        </div>
+        <div class="option-card" id="manageReviewsOption">
+            <h2>香水评价管理</h2>
+            <p>为香水添加评价和评分</p>
+        </div>
+        <div class="option-card" id="importDataOption">
+            <h2>数据导入</h2>
+            <p>一键导入香水数据到数据库</p>
+        </div>
+    </div>
+    
+    <!-- 香水管理页面 -->
+    <div id="perfumeManagementPage" class="container hidden">
+        <div class="nav-buttons">
+            <button class="back-btn" id="backToHomeFromManagement">返回主页</button>
+        </div>
+        
+        <h1>香水数据库</h1>
+        
+        <div class="section">
+            <div class="section-header">
+                <h2>香水搜索</h2>
+                <button class="toggle-btn">-</button>
+            </div>
+            <div class="section-content">
+                <div class="search-box">
+                    <input type="text" id="searchInput" placeholder="输入香水品牌或名称...">
+                    <button id="searchBtn">搜索</button>
+                </div>
+                <div class="counter">当前数据库共有 <span id="totalCount">0</span> 款香水</div>
+                <div class="perfume-list" id="perfumeList">
+                    <!-- 香水列表将在这里动态生成 -->
+                </div>
+            </div>
+        </div>
+        
+        <div class="section">
+            <div class="section-header">
+                <h2>香水管理</h2>
+                <button class="toggle-btn">-</button>
+            </div>
+            <div class="section-content">
+                <div class="search-box">
+                    <input type="text" id="manageSearch" placeholder="搜索要管理的香水...">
+                    <button id="showAddForm">添加新香水</button>
+                </div>
+                
+                <div id="addForm" class="add-form hidden">
+                    <div class="form-group">
+                        <label for="brandInput">品牌:</label>
+                        <input type="text" id="brandInput" placeholder="输入品牌">
+                    </div>
+                    <div class="form-group">
+                        <label for="nameInput">名称:</label>
+                        <input type="text" id="nameInput" placeholder="输入香水名称">
+                    </div>
+                    <div class="form-group">
+                        <button id="addPerfumeBtn">添加到数据库</button>
+                        <button id="cancelAdd">取消</button>
+                    </div>
+                </div>
+                
+                <div class="perfume-list" id="manageList">
+                    <!-- 管理列表将在这里动态生成 -->
+                </div>
+            </div>
+        </div>
+        
+        <!-- 新增数据备份部分 -->
+        <div class="section backup-section">
+            <div class="section-header">
+                <h2>数据备份与恢复</h2>
+                <button class="toggle-btn">-</button>
+            </div>
+            <div class="section-content">
+                <p>您可以导出当前数据作为备份，或在需要时导入备份数据</p>
+                <div class="backup-actions">
+                    <button id="exportDataBtn" class="export-btn">导出数据</button>
+                    <button id="importFileBtn" class="import-file-btn">从文件导入</button>
+                    <input type="file" id="fileInput" accept=".json" style="display: none;">
+                    <button id="clearDataBtn" class="clear-btn">清空所有数据</button>
+                </div>
+                <p id="backupStatus"></p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 评价管理页面 -->
+    <div id="reviewManagementPage" class="container hidden">
+        <div class="nav-buttons">
+            <button class="back-btn" id="backToHomeFromReviews">返回主页</button>
+        </div>
+        
+        <h1>香水评价管理</h1>
+        
+        <div class="section">
+            <div class="section-header">
+                <h2>选择香水</h2>
+                <button class="toggle-btn">-</button>
+            </div>
+            <div class="section-content">
+                <div class="search-box">
+                    <input type="text" id="reviewSearchInput" placeholder="搜索香水...">
+                    <button id="reviewSearchBtn">搜索</button>
+                </div>
+                <div class="perfume-list" id="reviewPerfumeList">
+                    <!-- 香水列表将在这里动态生成 -->
+                </div>
+            </div>
+        </div>
+        
+        <div class="section">
+            <div class="section-header">
+                <h2>添加评价</h2>
+                <button class="toggle-btn">-</button>
+            </div>
+            <div class="section-content">
+                <div id="selectedPerfumeInfo" class="hidden">
+                    <h3>当前选择: <span id="selectedPerfumeName"></span></h3>
+                </div>
+                
+                <div id="addReviewForm" class="add-form">
+                    <div class="form-group">
+                        <label for="reviewRating">评分:</label>
+                        <select id="reviewRating">
+                            <option value="5">5星 - 完美</option>
+                            <option value="4">4星 - 优秀</option>
+                            <option value="3">3星 - 良好</option>
+                            <option value="2">2星 - 一般</option>
+                            <option value="1">1星 - 差</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="reviewContent">评价:</label>
+                        <textarea id="reviewContent" placeholder="写下您的评价..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <button id="submitReviewBtn">提交评价</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="section">
+            <div class="section-header">
+                <h2>已有评价</h2>
+                <button class="toggle-btn">-</button>
+            </div>
+            <div class="section-content">
+                <div id="reviewsList">
+                    <!-- 评价列表将在这里动态生成 -->
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 数据导入页面 -->
+    <div id="importDataPage" class="container hidden">
+        <div class="nav-buttons">
+            <button class="back-btn" id="backToHomeFromImport">返回主页</button>
+        </div>
+        
+        <h1>香水数据导入</h1>
+        
+        <div class="section">
+            <div class="section-header">
+                <h2>导入香水数据</h2>
+                <button class="toggle-btn">-</button>
+            </div>
+            <div class="section-content">
+                <div class="import-data-container">
+                    <p>将香水数据以JSON格式粘贴到下方文本框中：</p>
+                    <textarea id="importDataTextarea" placeholder='例如: [{"brand":"娇兰花草水语","name":"柑橘罗勒edt"},{"brand":"娇兰","name":"檀韵玫香"}]'></textarea>
+                    <div class="import-actions">
+                        <button id="loadSampleDataBtn" class="sample-data-btn">加载示例数据</button>
+                        <button id="importDataBtn" class="import-btn">导入数据</button>
+                    </div>
+                    <p id="importStatus"></p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        // Firebase配置 - 请替换为您自己的配置
+        const firebaseConfig = {
+            apiKey: "AIzaSyDEXAMPLEEXAMPLEEXAMPLEEXAMPLE",
+            authDomain: "your-project-id.firebaseapp.com",
+            databaseURL: "https://your-project-id.firebaseio.com",
+            projectId: "your-project-id",
+            storageBucket: "your-project-id.appspot.com",
+            messagingSenderId: "123456789012",
+            appId: "1:123456789012:web:EXAMPLEEXAMPLEEXAMPLE"
+        };
+        
+        // 初始化Firebase
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+        
+        // 页面元素
+        const homePage = document.getElementById('homePage');
+        const perfumeManagementPage = document.getElementById('perfumeManagementPage');
+        const reviewManagementPage = document.getElementById('reviewManagementPage');
+        const importDataPage = document.getElementById('importDataPage');
+        
+        const managePerfumesOption = document.getElementById('managePerfumesOption');
+        const manageReviewsOption = document.getElementById('manageReviewsOption');
+        const importDataOption = document.getElementById('importDataOption');
+        
+        const backToHomeFromManagement = document.getElementById('backToHomeFromManagement');
+        const backToHomeFromReviews = document.getElementById('backToHomeFromReviews');
+        const backToHomeFromImport = document.getElementById('backToHomeFromImport');
+        
+        // 香水管理页面元素
+        const searchInput = document.getElementById('searchInput');
+        const searchBtn = document.getElementById('searchBtn');
+        const perfumeList = document.getElementById('perfumeList');
+        const totalCount = document.getElementById('totalCount');
+        const manageSearch = document.getElementById('manageSearch');
+        const manageList = document.getElementById('manageList');
+        const showAddForm = document.getElementById('showAddForm');
+        const addForm = document.getElementById('addForm');
+        const brandInput = document.getElementById('brandInput');
+        const nameInput = document.getElementById('nameInput');
+        const addPerfumeBtn = document.getElementById('addPerfumeBtn');
+        const cancelAdd = document.getElementById('cancelAdd');
+        const sectionHeaders = document.querySelectorAll('.section-header');
+        
+        // 评价管理页面元素
+        const reviewSearchInput = document.getElementById('reviewSearchInput');
+        const reviewSearchBtn = document.getElementById('reviewSearchBtn');
+        const reviewPerfumeList = document.getElementById('reviewPerfumeList');
+        const selectedPerfumeInfo = document.getElementById('selectedPerfumeInfo');
+        const selectedPerfumeName = document.getElementById('selectedPerfumeName');
+        const reviewRating = document.getElementById('reviewRating');
+        const reviewContent = document.getElementById('reviewContent');
+        const submitReviewBtn = document.getElementById('submitReviewBtn');
+        const reviewsList = document.getElementById('reviewsList');
+        
+        // 数据导入页面元素
+        const importDataTextarea = document.getElementById('importDataTextarea');
+        const loadSampleDataBtn = document.getElementById('loadSampleDataBtn');
+        const importDataBtn = document.getElementById('importDataBtn');
+        const importStatus = document.getElementById('importStatus');
+        
+        // 数据备份元素
+        const exportDataBtn = document.getElementById('exportDataBtn');
+        const importFileBtn = document.getElementById('importFileBtn');
+        const fileInput = document.getElementById('fileInput');
+        const clearDataBtn = document.getElementById('clearDataBtn');
+        const backupStatus = document.getElementById('backupStatus');
+        
+        // 全局变量
+        let perfumes = [
+            {"brand":"娇兰花草水语","name":"柑橘罗勒edt"},
+            {"brand":"娇兰花草水语","name":"玫瑰玫瑰"},
+            {"brand":"娇兰花草水语","name":"佛手柑"},
+            {"brand":"娇兰花草水语","name":"倾橙之恋"},
+            {"brand":"娇兰花草水语","name":"初夏沁梨"},
+            {"brand":"娇兰花草水语","name":"樱之漫舞"},
+            {"brand":"娇兰花草水语","name":"沁馨金姜"},
+            {"brand":"娇兰花草水语","name":"紫檀玫瑰"},
+            {"brand":"娇兰花草水语","name":"圆舞榴光"},
+            {"brand":"娇兰花草水语","name":"蜜意暖阳"},
+            {"brand":"娇兰","name":"檀韵玫香"},
+            {"brand":"娇兰","name":"广藿夜巴黎"},
+            {"brand":"娇兰","name":"兰花香氛"},
+            {"brand":"娇兰","name":"啡常鸢尾"},
+            {"brand":"娇兰","name":"轮回edp"},
+            {"brand":"娇兰","name":"轮回edt"},
+            {"brand":"娇兰","name":"满堂红edt"},
+            {"brand":"娇兰","name":"遗产edp"},
+            {"brand":"娇兰","name":"伟之华"},
+            {"brand":"娇兰","name":"香木奥秘"},
+            {"brand":"娇兰","name":"瞬间女士"},
+            {"brand":"娇兰","name":"一千零一夜"},
+            {"brand":"娇兰","name":"土耳其玫瑰"},
+            {"brand":"娇兰","name":"幽白麝香edp"},
+            {"brand":"娇兰","name":"蓝调时光"},
+            {"brand":"娇兰","name":"爱之鼓edt"},
+            {"brand":"娇兰","name":"帝王之水"},
+            {"brand":"娇兰","name":"热情广藿"},
+            {"brand":"娇兰","name":"精致原料"},
+            {"brand":"娇兰","name":"幻彩流星"},
+            {"brand":"娇兰","name":"皇家檀香"},
+            {"brand":"娇兰","name":"理想男士加强版"},
+            {"brand":"娇兰","name":"亚美尼亚木"},
+            {"brand":"娇兰","name":"白芷"},
+            {"brand":"兰蔻","name":"偶像淡香精"},
+            {"brand":"范思哲","name":"粉晶"},
+            {"brand":"范思哲","name":"爱神"},
+            {"brand":"范思哲","name":"香柠檬（意大利柠檬）"},
+            {"brand":"纪梵希","name":"心无禁忌"},
+            {"brand":"纪梵希","name":"倾城edt"},
+            {"brand":"纪梵希","name":"圆周率"},
+            {"brand":"纪梵希","name":"华丽羽翼"},
+            {"brand":"香奈儿","name":"5号之水edt（无）"},
+            {"brand":"香奈儿","name":"1957"},
+            {"brand":"香奈儿","name":"黄邂逅"},
+            {"brand":"香奈儿","name":"魅力男生运动"},
+            {"brand":"香奈儿","name":"杜维埃"},
+            {"brand":"香奈儿","name":"嘉柏丽尔"},
+            {"brand":"香奈儿","name":"东方屏风"},
+            {"brand":"TF","name":"白麝香"},
+            {"brand":"TF","name":"咖啡玫瑰2012"},
+            {"brand":"TF","name":"咖啡玫瑰2023"},
+            {"brand":"TF","name":"乌木沉香"},
+            {"brand":"TF","name":"烟氲圣木"},
+            {"brand":"TF","name":"摩洛哥木"},
+            {"brand":"TF","name":"日本梅"},
+            {"brand":"TF","name":"嫣红檀木"},
+            {"brand":"TF","name":"日本梅子"},
+            {"brand":"TF","name":"他妈的真棒"},
+            {"brand":"TF","name":"烟草乌木"},
+            {"brand":"TF","name":"黑之黑"},
+            {"brand":"TF","name":"金属霜花"},
+            {"brand":"TF","name":"香草尤物"},
+            {"brand":"TF","name":"上海百合"},
+            {"brand":"TF","name":"意大利丝柏"},
+            {"brand":"古驰","name":"绮梦栀子"},
+            {"brand":"古驰","name":"花悦"},
+            {"brand":"古驰","name":"竹韵p"},
+            {"brand":"古驰","name":"追忆"},
+            {"brand":"爱马仕","name":"大地edt"},
+            {"brand":"爱马仕","name":"雨后大地"},
+            {"brand":"爱马仕","name":"血色大黄"},
+            {"brand":"爱马仕","name":"橘绿之泉"},
+            {"brand":"爱马仕","name":"橘彩星光edp"},
+            {"brand":"爱马仕","name":"漂亮朋友"},
+            {"brand":"爱马仕","name":"尼罗河花园"},
+            {"brand":"爱马仕","name":"粉红葡萄柚"},
+            {"brand":"爱马仕","name":"爱马仕之光纯香"},
+            {"brand":"爱马仕","name":"金色橙花"},
+            {"brand":"博柏利","name":"都铎玫瑰"},
+            {"brand":"博柏利","name":"红粉恋歌"},
+            {"brand":"博柏利","name":"古香楠"},
+            {"brand":"阿玛尼","name":"myway"},
+            {"brand":"阿玛尼","name":"挚爱edp"},
+            {"brand":"阿玛尼","name":"颐和清檀"},
+            {"brand":"阿玛尼","name":"和风茉莉"},
+            {"brand":"阿玛尼","name":"你让我坚强"},
+            {"brand":"阿玛尼","name":"木质焚香"},
+            {"brand":"阿玛尼","name":"皇家沉香"},
+            {"brand":"宝格丽","name":"大吉岭茶"},
+            {"brand":"宝格丽","name":"玫瑰金桂"},
+            {"brand":"宝格丽","name":"森林之光"},
+            {"brand":"宝格丽","name":"甜蜜宝贝有酒精"},
+            {"brand":"宝格丽","name":"城市森林"},
+            {"brand":"宝格丽","name":"白茶"},
+            {"brand":"宝格丽","name":"玫瑰金漾"},
+            {"brand":"宝格丽","name":"紫晶"},
+            {"brand":"宝格丽","name":"黑茶"},
+            {"brand":"蔻依","name":"木兰诗雨"},
+            {"brand":"蔻依","name":"肉丝带"},
+            {"brand":"蔻依","name":"橙花之舞"},
+            {"brand":"祖玛珑","name":"牡丹与胭红"},
+            {"brand":"祖玛珑","name":"蓝风铃"},
+            {"brand":"祖玛珑","name":"黑石榴"},
+            {"brand":"祖玛珑","name":"伦敦雨"},
+            {"brand":"祖玛珑","name":"琥珀广藿香"},
+            {"brand":"祖玛珑","name":"丝绒玫瑰"},
+            {"brand":"祖玛珑","name":"乌木佛手柑"},
+            {"brand":"祖玛珑","name":"玫瑰与木兰"},
+            {"brand":"祖玛珑","name":"雪柚"},
+            {"brand":"祖玛珑","name":"白玫瑰与柠檬"},
+            {"brand":"祖玛珑","name":"香根草黑咖啡"},
+            {"brand":"祖玛珑","name":"威士忌与雪松限量版"},
+            {"brand":"祖氏挚爱","name":"祖玛珑之爱"},
+            {"brand":"祖氏挚爱","name":"天蓝广藿"},
+            {"brand":"祖氏挚爱","name":"泰芒青柠"},
+            {"brand":"祖氏挚爱","name":"白玫瑰与柠檬叶"},
+            {"brand":"祖氏挚爱","name":"42号花店"},
+            {"brand":"圣罗兰","name":"黑鸦片edp"},
+            {"brand":"圣罗兰","name":"花结领"},
+            {"brand":"圣罗兰","name":"红丝绒"},
+            {"brand":"圣罗兰","name":"连体衣"},
+            {"brand":"圣罗兰","name":"衬衣"},
+            {"brand":"圣罗兰","name":"反转巴黎淡香精"},
+            {"brand":"prada","name":"鸢尾花edp"},
+            {"brand":"prada","name":"鸢尾雪松"},
+            {"brand":"prada","name":"鸢尾轻芳"},
+            {"brand":"prada","name":"金合欢花"},
+            {"brand":"prada","name":"玫瑰"},
+            {"brand":"迪奥","name":"沙丘女士"},
+            {"brand":"迪奥","name":"清新之水edt"},
+            {"brand":"罗意威","name":"事后女"},
+            {"brand":"罗意威","name":"事后男"},
+            {"brand":"LV","name":"破晓"},
+            {"brand":"卡地亚","name":"龙之吻"},
+            {"brand":"梵克雅宝","name":"鸢尾乌木"},
+            {"brand":"梵克雅宝","name":"月光广藿"},
+            {"brand":"资生堂","name":"禅女士edp"},
+            {"brand":"雅诗兰黛","name":"欢沁原版"},
+            {"brand":"巴黎世家","name":"花之密语"},
+            {"brand":"BV","name":"花园15号·蓝色鼠尾草"},
+            {"brand":"BV","name":"花园9号·紫罗兰"},
+            {"brand":"celine","name":"流露"},
+            {"brand":"celine","name":"睡美人"},
+            {"brand":"celine","name":"不羁"},
+            {"brand":"潘海利根","name":"月亮女神"},
+            {"brand":"潘海利根","name":"伊丽莎白玫瑰"},
+            {"brand":"潘海利根","name":"藏红沉香"},
+            {"brand":"潘海利根","name":"狐狸"},
+            {"brand":"潘海利根","name":"广藿之匣edt"},
+            {"brand":"潘海利根","name":"琴酒"},
+            {"brand":"潘海利根","name":"布伦海姆花束"},
+            {"brand":"蒂菩提克","name":"希腊无花果"},
+            {"brand":"蒂菩提克","name":"水中影"},
+            {"brand":"蒂菩提克","name":"檀道"},
+            {"brand":"蒂菩提克","name":"常春藤之水"},
+            {"brand":"蒂菩提克","name":"圣日耳曼"},
+            {"brand":"蒂菩提克","name":"郁金香"},
+            {"brand":"阿蒂仙","name":"梵音藏心"},
+            {"brand":"阿蒂仙","name":"狂恋苦艾"},
+            {"brand":"阿蒂仙","name":"冥府之路"},
+            {"brand":"阿蒂仙","name":"廷巴克图"},
+            {"brand":"阿蒂仙","name":"晚香玉之夜"},
+            {"brand":"阿蒂仙","name":"熄灯礼拜"},
+            {"brand":"阿蒂仙","name":"紫色2号"},
+            {"brand":"阿蒂仙","name":"奇迹60"},
+            {"brand":"阿蒂仙","name":"暮夜沉醉"},
+            {"brand":"馥马尔","name":"贵妇肖像"},
+            {"brand":"馥马尔","name":"夜色玫瑰"},
+            {"brand":"馥马尔","name":"天竺葵"},
+            {"brand":"爱慕","name":"图书馆收藏6"},
+            {"brand":"爱慕","name":"迪亚女士"},
+            {"brand":"爱慕","name":"心花荡漾"},
+            {"brand":"爱慕","name":"回忆录女"},
+            {"brand":"爱慕","name":"回忆录男"},
+            {"brand":"爱慕","name":"史诗56"},
+            {"brand":"爱慕","name":"秘藏神谕"},
+            {"brand":"爱慕","name":"浮图行者"},
+            {"brand":"爱慕","name":"玫瑰焚香"},
+            {"brand":"爱慕","name":"寻踪觅影"},
+            {"brand":"爱慕","name":"曲词女"},
+            {"brand":"爱慕","name":"无尽寻觅"},
+            {"brand":"爱慕","name":"粼光尽现"},
+            {"brand":"爱慕","name":"地外之境"},
+            {"brand":"爱慕","name":"神话女"},
+            {"brand":"爱慕","name":"图书馆收藏9"},
+            {"brand":"爱慕","name":"史诗男"},
+            {"brand":"爱慕","name":"物质主义"},
+            {"brand":"爱慕","name":"化蝶男"},
+            {"brand":"爱慕","name":"化蝶女"},
+            {"brand":"爱慕","name":"黄金男"},
+            {"brand":"爱慕","name":"天空女"},
+            {"brand":"爱慕","name":"模仿男"},
+            {"brand":"moci之香","name":"爱人"},
+            {"brand":"moci之香","name":"西普大帝"},
+            {"brand":"moci之香","name":"西西里晚祷"},
+            {"brand":"moci之香","name":"蛮族入侵"},
+            {"brand":"动物学家","name":"奶牛"},
+            {"brand":"动物学家","name":"花栗鼠"},
+            {"brand":"MFK","name":"一只玫瑰"},
+            {"brand":"MFK","name":"小马丁（朝曦）"},
+            {"brand":"MFK","name":"540香精"},
+            {"brand":"SMN","name":"托斯卡诺烟草"},
+            {"brand":"SMN","name":"玫瑰"},
+            {"brand":"lelabo","name":"佛手柑22"},
+            {"brand":"lelabo","name":"檀香33"},
+            {"brand":"lelabo","name":"东京10"},
+            {"brand":"lelabo","name":"海湾19"},
+            {"brand":"门第托洛萨","name":"愚人"},
+            {"brand":"门第托洛萨","name":"人才"},
+            {"brand":"门第托洛萨","name":"天狼星"},
+            {"brand":"纳斯马图","name":"宽恕"},
+            {"brand":"纳斯马图","name":"黑色烟草"},
+            {"brand":"纳斯马图","name":"喧嚣"},
+            {"brand":"欧珑","name":"赤霞橘光"},
+            {"brand":"欧珑","name":"檀香深韵"},
+            {"brand":"欧珑","name":"无极乌龙"},
+            {"brand":"欧珑","name":"暗夜玫瑰"},
+            {"brand":"欧珑","name":"暗夜玫瑰精粹"},
+            {"brand":"欧珑","name":"流金木香"},
+            {"brand":"伊索","name":"炽"},
+            {"brand":"凯利安","name":"热情似火"},
+            {"brand":"凯利安","name":"金衣女人"},
+            {"brand":"凯利安","name":"琥珀沉香"},
+            {"brand":"凯利安","name":"禁忌之爱"},
+            {"brand":"纳西素","name":"同名女士淡香水"},
+            {"brand":"纳西素","name":"同名女生淡香精"},
+            {"brand":"纳西素","name":"玫瑰麝香"},
+            {"brand":"纳西素","name":"纯白麝香"},
+            {"brand":"川久保玲","name":"神奇沉香"},
+            {"brand":"川久保玲","name":"阿维尼翁"},
+            {"brand":"芦丹氏","name":"柏林少女"},
+            {"brand":"芦丹氏","name":"林之妩媚"},
+            {"brand":"芦丹氏","name":"欢场之子"},
+            {"brand":"芦丹氏","name":"迈索尔檀香"},
+            {"brand":"芦丹氏","name":"阿拉伯"},
+            {"brand":"芦丹氏","name":"八月夜桂花"},
+            {"brand":"芦丹氏","name":"松林少女"},
+            {"brand":"希思黎","name":"伊莎"},
+            {"brand":"希思黎","name":"夜幽情怀"},
+            {"brand":"百瑞德","name":"超级雪松"},
+            {"brand":"百瑞德","name":"荒漠孤魂"},
+            {"brand":"帕尔马之水","name":"加州桂"},
+            {"brand":"帕尔马之水","name":"白檀古龙水"},
+            {"brand":"帕尔马之水","name":"桃金娘"},
+            {"brand":"帕尔马之水","name":"撒丁岛"},
+            {"brand":"古特尔","name":"琥珀信仰"},
+            {"brand":"古特尔","name":"忍冬"},
+            {"brand":"信仰","name":"银色山泉"},
+            {"brand":"信仰","name":"王室"},
+            {"brand":"梅森马吉拉","name":"慵懒周末"},
+            {"brand":"梅森马吉拉","name":"航行物语"},
+            {"brand":"梅森马吉拉","name":"咖啡小憩"},
+            {"brand":"穆格勒","name":"清净古龙"},
+            {"brand":"穆格勒","name":"恐怖琥珀"},
+            {"brand":"帝国之香","name":"约瑟芬的玫瑰"},
+            {"brand":"帝国之香","name":"致敬"},
+            {"brand":"帝国之香","name":"科西嘉之恋"},
+            {"brand":"帝国之香","name":"斯兰多拉之水"},
+            {"brand":"帝国之香","name":"紫禁桂花"},
+            {"brand":"帝国之香","name":"被遗忘的野草"},
+            {"brand":"帝国之香","name":"摩洛哥柑橘"},
+            {"brand":"帝国之香","name":"日本柚子"},
+            {"brand":"卡萨莫拉蒂","name":"里拉"},
+            {"brand":"卡萨莫拉蒂","name":"墨菲斯托"},
+            {"brand":"卡萨莫拉蒂","name":"意大利加"},
+            {"brand":"卡萨莫拉蒂","name":"橄榄花"},
+            {"brand":"翡冷翠之香","name":"桃花与无花果"},
+            {"brand":"翡冷翠之香","name":"盐和沙丘"},
+            {"brand":"翡冷翠之香","name":"胸花"},
+            {"brand":"翡冷翠之香","name":"存在"},
+            {"brand":"翡冷翠之香","name":"马泰尔达"},
+            {"brand":"翡冷翠之香","name":"雪"},
+            {"brand":"翡冷翠之香","name":"旅行者"},
+            {"brand":"翡冷翠之香","name":"二十五马尔佐"},
+            {"brand":"格罗史密斯","name":"可爱的花朵"},
+            {"brand":"杜加尔","name":"孟买之声"},
+            {"brand":"杜加尔","name":"德巴瑟"},
+            {"brand":"弗拉潘","name":"炽木"},
+            {"brand":"弗拉潘","name":"1270"},
+            {"brand":"弗拉潘","name":"永不复返"},
+            {"brand":"弗拉潘","name":"曼恩岛"},
+            {"brand":"弗拉潘","name":"地下酒吧"},
+            {"brand":"弗拉潘","name":"如果"},
+            {"brand":"陶尔之香","name":"沙漠之心"},
+            {"brand":"陶尔之香","name":"摩洛哥沙漠"},
+            {"brand":"陶尔之香","name":"橙星"},
+            {"brand":"达西塔","name":"清迈月光"},
+            {"brand":"达西塔","name":"爱之仙乐"},
+            {"brand":"达西塔","name":"白象护卫"},
+            {"brand":"达西塔","name":"蒙特利"},
+            {"brand":"达西塔","name":"暹罗优雅"},
+            {"brand":"达西塔","name":"拉莉塔之花"},
+            {"brand":"达西塔","name":"灵魂挚友"},
+            {"brand":"达西塔","name":"影梦鸢尾"},
+            {"brand":"SIAM1928","name":"SANDPORT"},
+            {"brand":"VOYAGER","name":"山竹（山陀儿）"},
+            {"brand":"鲁宾","name":"前十男"},
+            {"brand":"鲁宾","name":"前十女"},
+            {"brand":"鲁宾","name":"玛格达"},
+            {"brand":"鲁宾","name":"黑玉花园"},
+            {"brand":"希爵夫","name":"象牙路线"},
+            {"brand":"希爵夫","name":"交响曲"},
+            {"brand":"嗅觉映像室","name":"皮革射手"},
+            {"brand":"嗅觉映像室","name":"尚存"},
+            {"brand":"嗅觉映像室","name":"抓拍（里约映像）"},
+            {"brand":"阿塔尔灵药","name":"东方甜点"},
+            {"brand":"Rogue","name":"岩兰之花"},
+            {"brand":"伊莱提马斯","name":"帝国（帝权）"},
+            {"brand":"阿瑞基勒多","name":"可可琥珀"},
+            {"brand":"ROJO","name":"极乐世界男士香精"},
+            {"brand":"ROJO","name":"极乐世界加强EDP"},
+            {"brand":"雅芮","name":"格斯达黎加栀子"},
+            {"brand":"Thomas kosmala（TK）","name":"4号"},
+            {"brand":"比安奇","name":"欲望大海"},
+            {"brand":"兴奋香剂","name":"深蓝宝石"},
+            {"brand":"莱斯盖尔布瓦","name":"1900偷心"},
+            {"brand":"杜木之香","name":"米兰"},
+            {"brand":"杜木之香","name":"传统"},
+            {"brand":"杜木之香","name":"橙木"},
+            {"brand":"安南之香","name":"咖啡"},
+            {"brand":"JUS","name":"麝香叠"},
+            {"brand":"JUS","name":"暗夜灼光"},
+            {"brand":"JUS","name":"一眼沦陷"},
+            {"brand":"JUS","name":"朝夕之瞬"},
+            {"brand":"面具","name":"等待"},
+            {"brand":"面具","name":"曼陀罗"},
+            {"brand":"面具","name":"迷失爱丽丝"},
+            {"brand":"煤油","name":"脏花工厂"},
+            {"brand":"OJ","name":"印度沉香加强版"},
+            {"brand":"OJ","name":"鸡蛋花"},
+            {"brand":"OJ","name":"玫瑰金"},
+            {"brand":"博尔特尼科夫","name":"热带雨林沉香（辛哈拉加沉香）"},
+            {"brand":"卡普里岛","name":"悠然自得香精"},
+            {"brand":"卡普里岛","name":"圣卡罗歌剧院香精"},
+            {"brand":"臆想作家","name":"燃烧的城市"},
+            {"brand":"臆想作家","name":"花坛里的狐狸"},
+            {"brand":"臆想作家","name":"白日醉酒"},
+            {"brand":"特殊香氛","name":"冰蓝橘汁"},
+            {"brand":"MEMO","name":"记忆之水"},
+            {"brand":"MEMO","name":"镜花水月"},
+            {"brand":"MEMO","name":"茵莱茶桂"},
+            {"brand":"IDEO","name":"太空狂想曲"},
+            {"brand":"TSUNAMI","name":"烟草公司"},
+            {"brand":"TSUNAMI","name":"风生水起"},
+            {"brand":"TSUNAMI","name":"拜金主义"},
+            {"brand":"威尼斯商人","name":"蓝茶"},
+            {"brand":"威尼斯商人","name":"火焰玫瑰"},
+            {"brand":"威尼斯商人","name":"洛可可"},
+            {"brand":"威尼斯商人","name":"拜占庭藏红花"},
+            {"brand":"威尼斯商人","name":"凤凰女郎"},
+            {"brand":"杜鲁萨迪","name":"新门"},
+            {"brand":"杜鲁萨迪","name":"斯卡拉歌剧院"},
+            {"brand":"可可系列","name":"可可二次方"},
+            {"brand":"曼塞拉","name":"粉色特权"},
+            {"brand":"液态幻想","name":"白色之兽"},
+            {"brand":"液态幻想","name":"血色之木"},
+            {"brand":"液态幻想","name":"粉色之彼"},
+            {"brand":"液态幻想","name":"猩红骑士"},
+            {"brand":"乐加利恩","name":"五月玫瑰"},
+            {"brand":"乐加利恩","name":"皇家西普"},
+            {"brand":"乐加利恩","name":"惊奇茉莉"},
+            {"brand":"乐加利恩","name":"紫霓"},
+            {"brand":"巴黎乔伊","name":"智慧树"},
+            {"brand":"巴黎乔伊","name":"咽红刺客"},
+            {"brand":"巴黎乔伊","name":"私人标签"},
+            {"brand":"巴黎乔伊","name":"千禧玫瑰"},
+            {"brand":"妮姗","name":"皮影戏"},
+            {"brand":"异者之香","name":"斑斓苍穹（空中彩虹）"},
+            {"brand":"异者之香","name":"碧月"},
+            {"brand":"异者之香","name":"步入疯狂"},
+            {"brand":"异者之香","name":"蜂蜜咖啡因"},
+            {"brand":"异者之香","name":"弗吉妮娅"},
+            {"brand":"异者之香","name":"浮光橙树"},
+            {"brand":"异者之香","name":"海德公园的童话"},
+            {"brand":"异者之香","name":"好运"},
+            {"brand":"异者之香","name":"烘焙咖啡"},
+            {"brand":"异者之香","name":"江户之森"},
+            {"brand":"异者之香","name":"可可"},
+            {"brand":"异者之香","name":"林中春息"},
+            {"brand":"异者之香","name":"蜜血"},
+            {"brand":"异者之香","name":"泥煤威士忌"},
+            {"brand":"异者之香","name":"情色咖啡店"},
+            {"brand":"异者之香","name":"秋日的香草柚子茶"},
+            {"brand":"异者之香","name":"闪耀"},
+            {"brand":"异者之香","name":"盛夏光年（永恒之夏)"},
+            {"brand":"异者之香","name":"甜蜜告别"},
+            {"brand":"异者之香","name":"夏桃茶寮"},
+            {"brand":"异者之香","name":"欣快"},
+            {"brand":"异者之香","name":"旋转木马"},
+            {"brand":"异者之香","name":"雪茄朗姆"},
+            {"brand":"异者之香","name":"盐渍青芒"},
+            {"brand":"异者之香","name":"樱桃苦杏"},
+            {"brand":"异者之香","name":"柚子苏打（日本柚子)"},
+            {"brand":"异者之香","name":"月兔"},
+            {"brand":"异者之香","name":"月之花"},
+            {"brand":"异者之香","name":"早安"},
+            {"brand":"异者之香","name":"骤降于玫"},
+            {"brand":"赛伊之梦","name":"月影女郎"},
+            {"brand":"赛伊之梦","name":"奢华乌木"},
+            {"brand":"大花蔷薇","name":"夜之女王"},
+            {"brand":"大花蔷薇","name":"萨斯基亚"},
+            {"brand":"弗兰克·波克莱","name":"灰烬"},
+            {"brand":"弗兰克·波克莱","name":"花"},
+            {"brand":"弗兰克·波克莱","name":"皇家旗帜"},
+            {"brand":"弗兰克·波克莱","name":"糖果"},
+            {"brand":"弗兰克·波克莱","name":"皮革"},
+            {"brand":"弗兰克·波克莱","name":"嫁给我"},
+            {"brand":"弗兰克·波克莱","name":"蔻卡妮（可卡因）"},
+            {"brand":"弗兰克·波克莱","name":"咖啡"},
+            {"brand":"弗兰克·波克莱","name":"茉莉"},
+            {"brand":"弗兰克·波克莱","name":"紫罗兰"},
+            {"brand":"弗兰克·波克莱","name":"安琪"},
+            {"brand":"弗兰克·波克莱","name":"琥珀"},
+            {"brand":"MPG","name":"中国山茶花"},
+            {"brand":"MPG","name":"科摩罗"},
+            {"brand":"MPG","name":"白花"},
+            {"brand":"MPG","name":"发声"},
+            {"brand":"利纳瑞","name":"伏雅之光"},
+            {"brand":"利纳瑞","name":"德拉戈尼禄"},
+            {"brand":"利纳瑞","name":"天使之河"},
+            {"brand":"(meo)米欧法修尼","name":"夜曲"},
+            {"brand":"(meo)米欧法修尼","name":"小歌"},
+            {"brand":"(meo)米欧法修尼","name":"旅行笔记3号爱"},
+            {"brand":"(meo)米欧法修尼","name":"气味93"},
+            {"brand":"萨那花园","name":"崇拜水"},
+            {"brand":"蝴蝶工匠","name":"烟草玫瑰"},
+            {"brand":"杰奎斯·菲斯","name":"紫叶丁香"},
+            {"brand":"杰奎斯·菲斯","name":"巴黎枫柠"},
+            {"brand":"杰奎斯·菲斯","name":"浮华玩物（粉色禁忌）"},
+            {"brand":"杰奎斯·菲斯","name":"失乐园"},
+            {"brand":"阿加托","name":"195.a.c"},
+            {"brand":"阿加托","name":"赤色庞贝"},
+            {"brand":"宝诺之香","name":"宏伟精粹"},
+            {"brand":"宝诺之香","name":"飞行精粹"},
+            {"brand":"罗马之香","name":"菲奥雷德安布拉"},
+            {"brand":"诺拜1942","name":"果树下的祈祷女"},
+            {"brand":"诺拜1942","name":"鲁德"},
+            {"brand":"诺拜1942","name":"马勒福斯"},
+            {"brand":"诺拜1942","name":"大师随想曲"},
+            {"brand":"Trudon","name":"绿野仙踪（绿意双生）"},
+            {"brand":"尼古莱","name":"宫娥"},
+            {"brand":"尼古莱","name":"紫罗兰之爱（紫罗兰的爱）"},
+            {"brand":"尼古莱","name":"纽约精粹"},
+            {"brand":"米勒海莉诗","name":"一叶之庭"},
+            {"brand":"米勒海莉诗","name":"城之幻"},
+            {"brand":"（TDC）非凡制造","name":"阿迪加特"},
+            {"brand":"（TDC）非凡制造","name":"白橙之境"},
+            {"brand":"非凡之香","name":"翡翠蕨类"},
+            {"brand":"非凡之香","name":"哈瓦那烟草"},
+            {"brand":"room1015","name":"同名"},
+            {"brand":"room1015","name":"摇滚玫瑰"},
+            {"brand":"bois1920","name":"相对红色"},
+            {"brand":"bois1920","name":"风中的风"},
+            {"brand":"bois1920","name":"群青"},
+            {"brand":"特里·德根茨堡","name":"华丽的梦"},
+            {"brand":"特里·德根茨堡","name":"冰茶"},
+            {"brand":"波赫博科","name":"乳香栀子"},
+            {"brand":"波赫博科","name":"胡萝卜沉香"},
+            {"brand":"爱幽香","name":"大米檀香"},
+            {"brand":"爱幽香","name":"雪松鸢尾"},
+            {"brand":"奥运兰花工匠之香","name":"木雕之韵"},
+            {"brand":"奥运兰花工匠之香","name":"夜行者"},
+            {"brand":"Bahfamsn","name":"butter batik cake（黄油蜡染蛋糕）"},
+            {"brand":"殴梦德杰尼","name":"玫瑰金"},
+            {"brand":"博格","name":"MAAI"},
+            {"brand":"博格","name":"OE"},
+            {"brand":"乌木屋","name":"the time"},
+            {"brand":"奥利布尔","name":"危险玫瑰"},
+            {"brand":"追逐之香","name":"垂枝玫瑰"},
+            {"brand":"ADV","name":"失忆玫瑰"},
+            {"brand":"ADV","name":"圣地鸢尾"},
+            {"brand":"维塔斯","name":"rose prive"},
+            {"brand":"BDK","name":"匈牙利花束（匈牙利玫瑰）"},
+            {"brand":"蕾娜海","name":"橘子岛"},
+            {"brand":"carine roitfeld","name":"orson（奥森）"},
+            {"brand":"ex nihilo","name":"Viper Green（绿之婆娑）"},
+            {"brand":"ERH1012","name":"融化我心"},
+            {"brand":"与月","name":"龙城之夜"},
+            {"brand":"与月","name":"与月京都"},
+            {"brand":"与月","name":"幽暗深潭"},
+            {"brand":"法尔曼","name":"蓝色钴I"},
+            {"brand":"萧邦","name":"皇室（锦绣乌木）"},
+            {"brand":"萧邦","name":"阿拉伯蜂蜜"},
+            {"brand":"萧邦","name":"黑色马拉基"},
+            {"brand":"萧邦","name":"莫高尔王朝茉莉"},
+            {"brand":"葛蕾","name":"倔强edp"},
+            {"brand":"姬龙雪","name":"斐济"},
+            {"brand":"阿莎罗","name":"同名男"},
+            {"brand":"浪凡","name":"琶音"},
+            {"brand":"浪凡","name":"嫁给我"},
+            {"brand":"浪凡","name":"珍妮小姐"},
+            {"brand":"浪凡","name":"玫瑰传说"},
+            {"brand":"浪凡","name":"卡普里岛少女"},
+            {"brand":"伊曼纽尔·温加罗","name":"蒂娃"},
+            {"brand":"安妮","name":"克莱因"},
+            {"brand":"蒙塔娜","name":"肌肤之香"},
+            {"brand":"拉塔法","name":"埃米尔沉香馥郁版"},
+            {"brand":"拉塔法","name":"华丽沉香"},
+            {"brand":"拉塔法","name":"乌木通道"},
+            {"brand":"罗莎","name":"胡须edp"},
+            {"brand":"罗莎","name":"神秘沉香"},
+            {"brand":"罗莎","name":"拜占庭"},
+            {"brand":"丽娜蕙姿","name":"比翼双飞edp"},
+            {"brand":"丹娜","name":"徽章"},
+            {"brand":"丹娜","name":"禁忌"},
+            {"brand":"希拉姆·格林","name":"香格里拉"},
+            {"brand":"希拉姆·格林","name":"下潜"},
+            {"brand":"倩碧","name":"快乐女士"},
+            {"brand":"莱俪","name":"安扎乐"},
+            {"brand":"莱俪","name":"墨恋"},
+            {"brand":"珍蒂毕丝","name":"凡尔赛舞会"},
+            {"brand":"Areej","name":"美女与野兽"},
+            {"brand":"Areej","name":"古丽希娜"},
+            {"brand":"奈拉梵米尔","name":"皮丘拉"},
+            {"brand":"奈拉梵米尔","name":"绚烂国度"},
+            {"brand":"莎娃蒂妮","name":"马德罕之耀"},
+            {"brand":"莎娃蒂妮","name":"斯利那加之耀"},
+            {"brand":"玫瑰心","name":"我心狂野"},
+            {"brand":"卡朗","name":"白水仙"},
+            {"brand":"雅男仕","name":"狄焚"},
+            {"brand":"ck","name":"one"},
+            {"brand":"ck","name":"be"},
+            {"brand":"ck","name":"迷情男士"},
+            {"brand":"4711","name":"柑橘豆蔻古龙水"},
+            {"brand":"4711","name":"经典古龙水"},
+            {"brand":"4711","name":"纯净微风"},
+            {"brand":"配枪朱丽叶","name":"复仇女神"},
+            {"brand":"配枪朱丽叶","name":"桃色洛丽塔"},
+            {"brand":"配枪朱丽叶","name":"青梨"},
+            {"brand":"配枪朱丽叶","name":"迷人小姐"},
+            {"brand":"配枪朱丽叶","name":"我不是香水"},
+            {"brand":"柏氛","name":"602"},
+            {"brand":"桃丝熊","name":"1920"},
+            {"brand":"凯卓","name":"一枝花罂粟"},
+            {"brand":"杜嘉班纳","name":"甜蜜牡丹"},
+            {"brand":"杜嘉班纳","name":"天鹅绒柔和乌木"},
+            {"brand":"艾克卡帕","name":"白苔"},
+            {"brand":"艾克卡帕","name":"腊梅"},
+            {"brand":"艾克卡帕","name":"牧歌"},
+            {"brand":"菲拉格慕","name":"歌剧魅影"},
+            {"brand":"慕莲勒","name":"修女"},
+            {"brand":"慕莲勒","name":"无花果"},
+            {"brand":"卡尔拉格斐","name":"桃花"},
+            {"brand":"卡夏尔","name":"白珍珠"},
+            {"brand":"祖梵","name":"岛屿栀子花"},
+            {"brand":"解放橘郡","name":"暗香涌动"},
+            {"brand":"解放橘郡","name":"古龙"},
+            {"brand":"解放橘郡","name":"眼中欲望"},
+            {"brand":"解放橘郡","name":"圣婴"},
+            {"brand":"解放橘郡","name":"茉莉与香烟"},
+            {"brand":"解放橘郡","name":"圣诞街头艺术节"},
+            {"brand":"解放橘郡","name":"赫曼如影"},
+            {"brand":"解放橘郡","name":"像你的人"},
+            {"brand":"奥斯卡塔伦","name":"玫瑰女士淡香"},
+            {"brand":"Edith","name":"玫瑰莫吉托"},
+            {"brand":"Edith","name":"伯爵茶"},
+            {"brand":"Jscent","name":"柚子"},
+            {"brand":"Jscent","name":"和肌"},
+            {"brand":"Jscent","name":"沉香"},
+            {"brand":"toun28","name":"玫瑰"},
+            {"brand":"boss","name":"魅惑女士"},
+            {"brand":"boss","name":"活力无限"},
+            {"brand":"boss","name":"风尚女"},
+            {"brand":"香邂格蕾","name":"红茶"},
+            {"brand":"科颜氏","name":"原始麝香"},
+            {"brand":"大卫杜夫","name":"冷水男"},
+            {"brand":"pino","name":"绿松果"},
+            {"brand":"奔驰","name":"钟情玫瑰女士"},
+            {"brand":"奔驰","name":"星选男士"},
+            {"brand":"宾利","name":"尊爵"},
+            {"brand":"clean","name":"暖棉"},
+            {"brand":"clean","name":"雨露"},
+            {"brand":"保罗史密斯","name":"玫瑰"},
+            {"brand":"安娜苏","name":"美人鱼"},
+            {"brand":"安娜苏","name":"漫舞精灵"},
+            {"brand":"安娜苏","name":"许愿精灵"},
+            {"brand":"安娜苏","name":"粉翼天马"},
+            {"brand":"安娜苏","name":"幸运精灵"},
+            {"brand":"安娜苏","name":"米亚女神"},
+            {"brand":"安娜苏","name":"筑梦天马"},
+            {"brand":"安娜苏","name":"绮幻飞行"},
+            {"brand":"王薇薇","name":"梦想公主"},
+            {"brand":"威尼斯精品香氛","name":"乌木玫瑰"},
+            {"brand":"威尼斯精品香氛","name":"藏红花"},
+            {"brand":"威尼斯精品香氛","name":"黑沉香"},
+            {"brand":"威尼斯精品香氛","name":"丝绒"},
+            {"brand":"威尼斯精品香氛","name":"柠檬花蕾"},
+            {"brand":"威尼斯精品香氛","name":"白色栀子花"},
+            {"brand":"默斯奇诺","name":"爱恋爱"},
+            {"brand":"佩乐","name":"缪斯女神edp"},
+            {"brand":"香邂格蕾","name":"玫瑰"},
+            {"brand":"维维尼奥","name":"奥利维尔克雷斯普"},
+            {"brand":"浮生六记","name":"全线"},
+            {"brand":"巴莉奥","name":"全线"},
+            {"brand":"香蕉共和国","name":"木质橙花油"},
+            {"brand":"香蕉共和国","name":"17"},
+            {"brand":"香蕉共和国","name":"78"},
+            {"brand":"香蕉共和国","name":"90"},
+            {"brand":"阅岚","name":"圣母教堂"},
+            {"brand":"阅岚","name":"盛夏蒲桃"},
+            {"brand":"阅岚","name":"秋小姐"},
+            {"brand":"阅岚","name":"骑士精神"},
+            {"brand":"阅岚","name":"松间友"},
+            {"brand":"阅岚","name":"携君游"},
+            {"brand":"阅岚","name":"陌路人"},
+            {"brand":"4091","name":"空白"},
+            {"brand":"4091","name":"狗儿"},
+            {"brand":"4091","name":"酒"},
+            {"brand":"4091","name":"橙花橙花"},
+            {"brand":"4091","name":"大红袍"},
+            {"brand":"4091","name":"草莓之死"},
+            {"brand":"4091","name":"碎银子"},
+            {"brand":"4091","name":"草莓"},
+            {"brand":"4091","name":"绿咖啡"},
+            {"brand":"4091","name":"圣木"},
+            {"brand":"4091","name":"红茶"},
+            {"brand":"4091","name":"满陇"},
+            {"brand":"4091","name":"巧克力"},
+            {"brand":"4091","name":"咖啡accord"},
+            {"brand":"大佛之香","name":"流莺树"},
+            {"brand":"大佛之香","name":"爱人午睡"},
+            {"brand":"闻献","name":"相拥之后"},
+            {"brand":"观夏","name":"剧"},
+            {"brand":"观夏","name":"夜的轮廓"},
+            {"brand":"one day","name":"阿姆斯特丹"},
+            {"brand":"天乐","name":"温柔的狮"},
+            {"brand":"南道格致","name":"蓝纱"},
+            {"brand":"心灵工匠","name":"追光夜莺"},
+            {"brand":"五朵里","name":"梅"},
+            {"brand":"宣香","name":"嫩枝莫吉托"},
+            {"brand":"宣香","name":"杜松金汤力"},
+            {"brand":"气味图书馆","name":"凉白开"},
+            {"brand":"沈云门","name":"纯洁"},
+            {"brand":"谜底","name":"檀与禅"},
+            {"brand":"谜底","name":"雨前春意"},
+            {"brand":"谜底","name":"炽光之芒"},
+            {"brand":"谜底","name":"熏衣"},
+            {"brand":"浩伯手作","name":"翡翠梦境"},
+            {"brand":"极致美学","name":"女人"},
+            {"brand":"双锦","name":"酒桂极致"},
+            {"brand":"夏茉","name":"牡丹赋"},
+            {"brand":"夏茉","name":"阮郎归"},
+            {"brand":"秋霞","name":"桂花王"}
+        ];
+        let reviews = [];
+        let selectedPerfume = null;
+        let isOnline = navigator.onLine;
+        
+        // 示例香水数据
+        const samplePerfumes = [
+            { brand: "示例品牌1", name: "示例香水1" },
+            { brand: "示例品牌2", name: "示例香水2" }
+        ];
+        // 初始化页面导航
+        function initNavigation() {
+            // 主页选项
+            managePerfumesOption.addEventListener('click', () => {
+                homePage.classList.add('hidden');
+                perfumeManagementPage.classList.remove('hidden');
+                reviewManagementPage.classList.add('hidden');
+                importDataPage.classList.add('hidden');
+            });
+            
+            manageReviewsOption.addEventListener('click', () => {
+                homePage.classList.add('hidden');
+                perfumeManagementPage.classList.add('hidden');
+                reviewManagementPage.classList.remove('hidden');
+                importDataPage.classList.add('hidden');
+            });
+            
+            importDataOption.addEventListener('click', () => {
+                homePage.classList.add('hidden');
+                perfumeManagementPage.classList.add('hidden');
+                reviewManagementPage.classList.add('hidden');
+                importDataPage.classList.remove('hidden');
+            });
+            
+            // 返回按钮
+            backToHomeFromManagement.addEventListener('click', () => {
+                homePage.classList.remove('hidden');
+                perfumeManagementPage.classList.add('hidden');
+                reviewManagementPage.classList.add('hidden');
+                importDataPage.classList.add('hidden');
+            });
+            
+            backToHomeFromReviews.addEventListener('click', () => {
+                homePage.classList.remove('hidden');
+                perfumeManagementPage.classList.add('hidden');
+                reviewManagementPage.classList.add('hidden');
+                importDataPage.classList.add('hidden');
+            });
+            
+            backToHomeFromImport.addEventListener('click', () => {
+                homePage.classList.remove('hidden');
+                perfumeManagementPage.classList.add('hidden');
+                reviewManagementPage.classList.add('hidden');
+                importDataPage.classList.add('hidden');
+            });
+        }
+        
+        // 检查网络状态
+        function checkNetworkStatus() {
+            window.addEventListener('online', () => {
+                isOnline = true;
+                syncData();
+            });
+            
+            window.addEventListener('offline', () => {
+                isOnline = false;
+                alert('网络连接已断开，将使用本地数据。连接恢复后将自动同步。');
+            });
+        }
+        
+        // 从Firebase加载数据
+        function loadDataFromFirebase() {
+            if (!isOnline) {
+                loadFromLocalStorage();
+                return;
+            }
+            
+            const perfumesRef = database.ref('perfumes');
+            const reviewsRef = database.ref('reviews');
+            
+            perfumesRef.on('value', (snapshot) => {
+                const data = snapshot.val();
+                if (data) {
+                    perfumes = Object.values(data);
+                    saveToLocalStorage('perfumes', perfumes);
+                    updateCounter();
+                    renderGroupedPerfumeList(perfumes, perfumeList);
+                    renderGroupedPerfumeList(perfumes, manageList, true);
+                    renderGroupedPerfumeList(perfumes, reviewPerfumeList, false, selectPerfumeForReview);
+                } else {
+                    // 如果Firebase中没有数据，尝试从本地加载
+                    loadFromLocalStorage();
+                }
+            });
+            
+            reviewsRef.on('value', (snapshot) => {
+                const data = snapshot.val();
+                if (data) {
+                    reviews = Object.values(data);
+                    saveToLocalStorage('reviews', reviews);
+                    if (selectedPerfume) {
+                        renderReviewsForSelectedPerfume();
+                    }
+                } else {
+                    loadFromLocalStorage('reviews');
+                }
+            });
+        }
+        
+        // 同步数据到Firebase
+        function syncData() {
+            if (!isOnline) return;
+            
+            const perfumesRef = database.ref('perfumes');
+            const reviewsRef = database.ref('reviews');
+            
+            // 将本地数据同步到Firebase
+            const localPerfumes = JSON.parse(localStorage.getItem('perfumes')) || [];
+            if (localPerfumes.length > 0) {
+                const perfumesObj = {};
+                localPerfumes.forEach((perfume, index) => {
+                    perfumesObj[index] = perfume;
+                });
+                perfumesRef.set(perfumesObj);
+            }
+            
+            const localReviews = JSON.parse(localStorage.getItem('reviews')) || [];
+            if (localReviews.length > 0) {
+                const reviewsObj = {};
+                localReviews.forEach((review, index) => {
+                    reviewsObj[index] = review;
+                });
+                reviewsRef.set(reviewsObj);
+            }
+        }
+        
+        // 保存数据到本地存储
+        function saveToLocalStorage(key, data) {
+            localStorage.setItem(key, JSON.stringify(data));
+        }
+        
+        // 从本地存储加载数据
+        function loadFromLocalStorage(key = 'perfumes') {
+            const data = JSON.parse(localStorage.getItem(key)) || [];
+            if (key === 'perfumes') {
+                perfumes = data;
+                updateCounter();
+                renderGroupedPerfumeList(perfumes, perfumeList);
+                renderGroupedPerfumeList(perfumes, manageList, true);
+                renderGroupedPerfumeList(perfumes, reviewPerfumeList, false, selectPerfumeForReview);
+            } else if (key === 'reviews') {
+                reviews = data;
+                if (selectedPerfume) {
+                    renderReviewsForSelectedPerfume();
+                }
+            }
+        }
+        
+        // 更新计数器
+        function updateCounter() {
+            totalCount.textContent = perfumes.length;
+        }
+        
+        // 按品牌分组香水
+        function groupPerfumesByBrand(perfumesList) {
+            const grouped = {};
+            
+            perfumesList.forEach(perfume => {
+                if (!grouped[perfume.brand]) {
+                    grouped[perfume.brand] = [];
+                }
+                grouped[perfume.brand].push(perfume);
+            });
+            
+            return grouped;
+        }
+        
+        // 渲染香水列表（按品牌分组）
+        function renderGroupedPerfumeList(list, container, showDelete = false, clickHandler = null) {
+            container.innerHTML = '';
+            
+            if (list.length === 0) {
+                container.innerHTML = '<p>没有找到匹配的香水</p>';
+                return;
+            }
+            
+            const grouped = groupPerfumesByBrand(list);
+            
+            Object.keys(grouped).sort().forEach(brand => {
+                const group = document.createElement('div');
+                group.className = 'brand-group';
+                
+                const header = document.createElement('div');
+                header.className = 'brand-header';
+                header.innerHTML = `${brand} <span>(${grouped[brand].length}款)</span>`;
+                header.addEventListener('click', () => {
+                    group.classList.toggle('brand-collapsed');
+                });
+                
+                const content = document.createElement('div');
+                content.className = 'brand-content';
+                
+                grouped[brand].forEach(perfume => {
+                    const item = document.createElement('div');
+                    item.className = 'perfume-item';
+                    
+                    const info = document.createElement('div');
+                    info.className = 'perfume-info';
+                    info.innerHTML = `<span class="name">${perfume.name}</span>`;
+                    
+                    item.appendChild(info);
+                    
+                    if (showDelete) {
+                        const deleteBtn = document.createElement('button');
+                        deleteBtn.className = 'delete-btn';
+                        deleteBtn.textContent = '删除';
+                        deleteBtn.addEventListener('click', () => {
+                            deletePerfume(perfume);
+                        });
+                        item.appendChild(deleteBtn);
+                    }
+                    
+                    if (clickHandler) {
+                        item.style.cursor = 'pointer';
+                        item.addEventListener('click', () => {
+                            clickHandler(perfume);
+                        });
+                    }
+                    
+                    content.appendChild(item);
+                });
+                
+                group.appendChild(header);
+                group.appendChild(content);
+                container.appendChild(group);
+            });
+        }
+        
+        // 搜索香水
+        function searchPerfumes(query, targetList = perfumes) {
+            if (!query) return targetList;
+            
+            return targetList.filter(perfume => {
+                const brandMatch = perfume.brand.toLowerCase().includes(query.toLowerCase());
+                const nameMatch = perfume.name.toLowerCase().includes(query.toLowerCase());
+                return brandMatch || nameMatch;
+            });
+        }
+        
+        // 添加香水
+        function addPerfume(brand, name) {
+            if (!brand || !name) {
+                alert('请输入品牌和香水名称');
+                return;
+            }
+            
+            const newPerfume = { brand, name };
+            perfumes.push(newPerfume);
+            
+            if (isOnline) {
+                const perfumesRef = database.ref('perfumes');
+                perfumesRef.set(perfumes);
+            } else {
+                saveToLocalStorage('perfumes', perfumes);
+            }
+            
+            updateCounter();
+            renderGroupedPerfumeList(searchPerfumes(manageSearch.value, perfumes), manageList, true);
+            renderGroupedPerfumeList(searchPerfumes(searchInput.value, perfumes), perfumeList);
+            renderGroupedPerfumeList(perfumes, reviewPerfumeList, false, selectPerfumeForReview);
+            
+            // 重置表单
+            brandInput.value = '';
+            nameInput.value = '';
+            addForm.classList.add('hidden');
+        }
+        
+        // 删除香水
+        function deletePerfume(perfumeToDelete) {
+            if (confirm(`确定要删除 "${perfumeToDelete.brand} ${perfumeToDelete.name}" 吗？`)) {
+                perfumes = perfumes.filter(perfume => 
+                    !(perfume.brand === perfumeToDelete.brand && perfume.name === perfumeToDelete.name)
+                );
+                
+                // 同时删除相关评价
+                reviews = reviews.filter(review => 
+                    !(review.brand === perfumeToDelete.brand && review.name === perfumeToDelete.name)
+                );
+                
+                if (isOnline) {
+                    const perfumesRef = database.ref('perfumes');
+                    perfumesRef.set(perfumes);
+                    
+                    const reviewsRef = database.ref('reviews');
+                    reviewsRef.set(reviews);
+                } else {
+                    saveToLocalStorage('perfumes', perfumes);
+                    saveToLocalStorage('reviews', reviews);
+                }
+                
+                updateCounter();
+                renderGroupedPerfumeList(searchPerfumes(manageSearch.value, perfumes), manageList, true);
+                renderGroupedPerfumeList(searchPerfumes(searchInput.value, perfumes), perfumeList);
+                renderGroupedPerfumeList(perfumes, reviewPerfumeList, false, selectPerfumeForReview);
+                
+                if (selectedPerfume && 
+                    selectedPerfume.brand === perfumeToDelete.brand && 
+                    selectedPerfume.name === perfumeToDelete.name) {
+                    selectedPerfume = null;
+                    selectedPerfumeInfo.classList.add('hidden');
+                    reviewsList.innerHTML = '<p>请选择一款香水查看评价</p>';
+                }
+            }
+        }
+        
+        // 选择香水查看/添加评价
+        function selectPerfumeForReview(perfume) {
+            selectedPerfume = perfume;
+            selectedPerfumeName.textContent = `${perfume.brand} - ${perfume.name}`;
+            selectedPerfumeInfo.classList.remove('hidden');
+            renderReviewsForSelectedPerfume();
+        }
+        
+        // 渲染选中香水的评价
+        function renderReviewsForSelectedPerfume() {
+            if (!selectedPerfume) return;
+            
+            const perfumeReviews = reviews.filter(review => 
+                review.brand === selectedPerfume.brand && 
+                review.name === selectedPerfume.name
+            );
+            
+            reviewsList.innerHTML = '';
+            
+            if (perfumeReviews.length === 0) {
+                reviewsList.innerHTML = '<p>暂无评价</p>';
+                return;
+            }
+            
+            perfumeReviews.forEach(review => {
+                const reviewItem = document.createElement('div');
+                reviewItem.className = 'review-item';
+                
+                const reviewHeader = document.createElement('div');
+                reviewHeader.className = 'review-header';
+                reviewHeader.innerHTML = `
+                    <span>评分: <span class="rating">${'★'.repeat(review.rating)}${'☆'.repeat(5 - review.rating)}</span></span>
+                    <span>${new Date(review.timestamp).toLocaleString()}</span>
+                `;
+                
+                const reviewContent = document.createElement('div');
+                reviewContent.className = 'review-content';
+                reviewContent.textContent = review.content;
+                
+                const deleteBtn = document.createElement('button');
+                deleteBtn.className = 'delete-btn';
+                deleteBtn.textContent = '删除';
+                deleteBtn.addEventListener('click', () => {
+                    deleteReview(review);
+                });
+                
+                reviewItem.appendChild(reviewHeader);
+                reviewItem.appendChild(reviewContent);
+                reviewItem.appendChild(deleteBtn);
+                
+                reviewsList.appendChild(reviewItem);
+            });
+        }
+        
+        // 添加评价
+        function addReview() {
+            if (!selectedPerfume) {
+                alert('请先选择一款香水');
+                return;
+            }
+            
+            const rating = parseInt(reviewRating.value);
+            const content = reviewContent.value.trim();
+            
+            if (!content) {
+                alert('请输入评价内容');
+                return;
+            }
+            
+            const newReview = {
+                brand: selectedPerfume.brand,
+                name: selectedPerfume.name,
+                rating,
+                content,
+                timestamp: new Date().getTime()
+            };
+            
+            reviews.push(newReview);
+            
+            if (isOnline) {
+                const reviewsRef = database.ref('reviews');
+                reviewsRef.set(reviews);
+            } else {
+                saveToLocalStorage('reviews', reviews);
+            }
+            
+            renderReviewsForSelectedPerfume();
+            reviewContent.value = '';
+        }
+        
+        // 删除评价
+        function deleteReview(reviewToDelete) {
+            if (confirm('确定要删除这条评价吗？')) {
+                reviews = reviews.filter(review => 
+                    !(review.brand === reviewToDelete.brand && 
+                      review.name === reviewToDelete.name && 
+                      review.timestamp === reviewToDelete.timestamp)
+                );
+                
+                if (isOnline) {
+                    const reviewsRef = database.ref('reviews');
+                    reviewsRef.set(reviews);
+                } else {
+                    saveToLocalStorage('reviews', reviews);
+                }
+                
+                renderReviewsForSelectedPerfume();
+            }
+        }
+        
+        // 导入香水数据
+        function importPerfumeData() {
+            const dataText = importDataTextarea.value.trim();
+            
+            if (!dataText) {
+                importStatus.textContent = '请输入有效的JSON数据';
+                importStatus.style.color = 'red';
+                return;
+            }
+            
+            try {
+                const newPerfumes = JSON.parse(dataText);
+                
+                if (!Array.isArray(newPerfumes)) {
+                    throw new Error('数据格式不正确，应为数组');
+                }
+                
+                // 检查每个元素是否有brand和name属性
+                newPerfumes.forEach(item => {
+                    if (!item.brand || !item.name) {
+                        throw new Error('每条数据必须包含brand和name属性');
+                    }
+                });
+                
+                // 合并新数据，避免重复
+                newPerfumes.forEach(newPerfume => {
+                    const exists = perfumes.some(p => 
+                        p.brand === newPerfume.brand && p.name === newPerfume.name
+                    );
+                    if (!exists) {
+                        perfumes.push(newPerfume);
+                    }
+                });
+                
+                if (isOnline) {
+                    const perfumesRef = database.ref('perfumes');
+                    perfumesRef.set(perfumes);
+                } else {
+                    saveToLocalStorage('perfumes', perfumes);
+                }
+                
+                updateCounter();
+                renderGroupedPerfumeList(perfumes, perfumeList);
+                renderGroupedPerfumeList(perfumes, manageList, true);
+                renderGroupedPerfumeList(perfumes, reviewPerfumeList, false, selectPerfumeForReview);
+                
+                importStatus.textContent = `成功导入 ${newPerfumes.length} 款香水数据`;
+                importStatus.style.color = 'green';
+                importDataTextarea.value = '';
+            } catch (error) {
+                importStatus.textContent = `导入失败: ${error.message}`;
+                importStatus.style.color = 'red';
+                console.error('导入数据错误:', error);
+            }
+        }
+        
+        // 加载示例数据
+        function loadSampleData() {
+            importDataTextarea.value = JSON.stringify(samplePerfumes, null, 2);
+            importStatus.textContent = '示例数据已加载，点击"导入数据"按钮导入';
+            importStatus.style.color = 'blue';
+        }
+        
+        // 导出数据为JSON文件
+        function exportData() {
+            const data = {
+                perfumes: perfumes,
+                reviews: reviews
+            };
+            
+            const dataStr = JSON.stringify(data, null, 2);
+            const dataBlob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(dataBlob);
+            
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `perfume-data-${new Date().toISOString().slice(0, 10)}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            backupStatus.textContent = '数据导出成功';
+            backupStatus.style.color = 'green';
+            setTimeout(() => {
+                backupStatus.textContent = '';
+            }, 3000);
+        }
+        
+        // 从文件导入数据
+        function importFromFile() {
+            fileInput.click();
+        }
+        
+        // 处理文件导入
+        function handleFileImport(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    
+                    if (!data.perfumes || !Array.isArray(data.perfumes)) {
+                        throw new Error('文件格式不正确，缺少香水数据');
+                    }
+                    
+                    // 确认导入
+                    if (!confirm(`确定要导入 ${data.perfumes.length} 款香水数据和 ${data.reviews ? data.reviews.length : 0} 条评价数据吗？这将覆盖当前数据。`)) {
+                        return;
+                    }
+                    
+                    perfumes = data.perfumes;
+                    reviews = data.reviews || [];
+                    
+                    if (isOnline) {
+                        const perfumesRef = database.ref('perfumes');
+                        perfumesRef.set(perfumes);
+                        
+                        const reviewsRef = database.ref('reviews');
+                        reviewsRef.set(reviews);
+                    } else {
+                        saveToLocalStorage('perfumes', perfumes);
+                        saveToLocalStorage('reviews', reviews);
+                    }
+                    
+                    updateCounter();
+                    renderGroupedPerfumeList(perfumes, perfumeList);
+                    renderGroupedPerfumeList(perfumes, manageList, true);
+                    renderGroupedPerfumeList(perfumes, reviewPerfumeList, false, selectPerfumeForReview);
+                    
+                    if (selectedPerfume) {
+                        selectedPerfume = null;
+                        selectedPerfumeInfo.classList.add('hidden');
+                    }
+                    
+                    backupStatus.textContent = '数据导入成功';
+                    backupStatus.style.color = 'green';
+                    setTimeout(() => {
+                        backupStatus.textContent = '';
+                    }, 3000);
+                } catch (error) {
+                    backupStatus.textContent = `导入失败: ${error.message}`;
+                    backupStatus.style.color = 'red';
+                    console.error('文件导入错误:', error);
+                }
+            };
+            reader.readAsText(file);
+            fileInput.value = ''; // 重置文件输入，允许重复选择同一文件
+        }
+        
+        // 清空所有数据
+        function clearAllData() {
+            if (!confirm('确定要清空所有数据吗？此操作不可撤销！')) {
+                return;
+            }
+            
+            perfumes = [];
+            reviews = [];
+            
+            if (isOnline) {
+                const perfumesRef = database.ref('perfumes');
+                perfumesRef.set(null);
+                
+                const reviewsRef = database.ref('reviews');
+                reviewsRef.set(null);
+            } else {
+                localStorage.removeItem('perfumes');
+                localStorage.removeItem('reviews');
+            }
+            
+            updateCounter();
+            renderGroupedPerfumeList(perfumes, perfumeList);
+            renderGroupedPerfumeList(perfumes, manageList, true);
+            renderGroupedPerfumeList(perfumes, reviewPerfumeList, false, selectPerfumeForReview);
+            
+            if (selectedPerfume) {
+                selectedPerfume = null;
+                selectedPerfumeInfo.classList.add('hidden');
+            }
+            
+            backupStatus.textContent = '所有数据已清空';
+            backupStatus.style.color = 'green';
+            setTimeout(() => {
+                backupStatus.textContent = '';
+            }, 3000);
+        }
+        
+        // 初始化事件监听
+        function initEventListeners() {
+            // 香水管理页面事件
+            searchBtn.addEventListener('click', () => {
+                const results = searchPerfumes(searchInput.value);
+                renderGroupedPerfumeList(results, perfumeList);
+            });
+            
+            searchInput.addEventListener('keyup', (e) => {
+                if (e.key === 'Enter') {
+                    const results = searchPerfumes(searchInput.value);
+                    renderGroupedPerfumeList(results, perfumeList);
+                }
+            });
+            
+            manageSearch.addEventListener('keyup', () => {
+                const results = searchPerfumes(manageSearch.value, perfumes);
+                renderGroupedPerfumeList(results, manageList, true);
+            });
+            
+            showAddForm.addEventListener('click', () => {
+                addForm.classList.remove('hidden');
+            });
+            
+            cancelAdd.addEventListener('click', () => {
+                addForm.classList.add('hidden');
+            });
+            
+            addPerfumeBtn.addEventListener('click', () => {
+                addPerfume(brandInput.value, nameInput.value);
+            });
+            
+            nameInput.addEventListener('keyup', (e) => {
+                if (e.key === 'Enter') {
+                    addPerfume(brandInput.value, nameInput.value);
+                }
+            });
+            
+            // 评价管理页面事件
+            reviewSearchBtn.addEventListener('click', () => {
+                const results = searchPerfumes(reviewSearchInput.value);
+                renderGroupedPerfumeList(results, reviewPerfumeList, false, selectPerfumeForReview);
+            });
+            
+            reviewSearchInput.addEventListener('keyup', (e) => {
+                if (e.key === 'Enter') {
+                    const results = searchPerfumes(reviewSearchInput.value);
+                    renderGroupedPerfumeList(results, reviewPerfumeList, false, selectPerfumeForReview);
+                }
+            });
+            
+            submitReviewBtn.addEventListener('click', addReview);
+            
+            // 数据导入页面事件
+            loadSampleDataBtn.addEventListener('click', loadSampleData);
+            importDataBtn.addEventListener('click', importPerfumeData);
+            
+            // 数据备份事件
+            exportDataBtn.addEventListener('click', exportData);
+            importFileBtn.addEventListener('click', importFromFile);
+            fileInput.addEventListener('change', handleFileImport);
+            clearDataBtn.addEventListener('click', clearAllData);
+            
+            // 折叠/展开功能
+            sectionHeaders.forEach(header => {
+                header.addEventListener('click', () => {
+                    const section = header.parentElement;
+                    section.classList.toggle('collapsed');
+                    const btn = header.querySelector('.toggle-btn');
+                    btn.textContent = section.classList.contains('collapsed') ? '+' : '-';
+                });
+            });
+        }
+        
+        // 初始化应用
+        function initApp() {
+            initNavigation();
+            checkNetworkStatus();
+            initEventListeners();
+            loadDataFromFirebase();
+        }
+        
+        // 启动应用
+        initApp();
+    </script>
+</body>
+</html>
